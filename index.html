@@ -4,9 +4,84 @@
     <script type="text/javascript" src="util/webgl-utils.js"></script>
     <script type="text/javascript" src="util/matrix4x4.js"></script>
 
+    <script id="vertshader" type="x-shader/x-vertex">
+        attribute vec3 g_Position;
+        attribute vec2 g_TexCoord0;
+        varying vec2 texCoord;
+        void main() {
+            gl_Position = vec4(g_Position.x, g_Position.y, g_Position.z, 1.0);
+            texCoord = g_TexCoord0;
+        }
+    </script>
+
+    <script id="fragshader" type="x-shader/x-fragment">
+        precision mediump float;
+        uniform sampler2D tex;
+        varying vec2 texCoord;
+        void main() {
+            gl_FragColor = texture2D(tex, texCoord);
+        }
+    </script>
+
     <script type="text/javascript">
         // Implement all the things here
         main = function() {
+            var c = document.getElementById("canvas");
+            gl = WebGLUtils.setupWebGL(c);
+
+            init = function() {
+                gl.clearColor(0, 0, 0.7, 1);
+                program = initProgram(gl);
+
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.useProgram(program)
+            }
+
+            c.addEventListener('webglcontextlost', function(e) {
+                e.preventDefault()
+            }, false);
+            c.addEventListener('webglcontextlost', init, false);
+
+            gl = WebGLUtils.setupWebGL(c);
+            init();
+        }
+
+        loadShader = function(gl, type, src) {
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, src);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS) &&
+                !gl.isContextLost())
+            {
+                alert("Shader error:\n" + gl.getShaderInfoLog(shader));
+                return null;
+            }
+            return shader;
+        }
+
+        initProgram = function(gl) {
+            var vShader = loadShader(gl, gl.VERTEX_SHADER,
+                document.getElementById("vertshader").text);
+
+            var fShader = loadShader(gl, gl.FRAGMENT_SHADER,
+                document.getElementById("fragshader").text);
+
+            var program = gl.createProgram();
+
+            gl.attachShader(program, vShader);
+            gl.attachShader(program, fShader);
+            gl.bindAttribLocation(program, 0, "g_Position");
+            gl.bindAttribLocation(program, 1, "g_TexCoord0");
+            gl.linkProgram(program);
+
+            var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+            if (!linked && !gl.isContextLost()) {
+                alert("Link error:\n" + gl.getProgramInfoLog(program));
+                gl.deleteProgram(program);
+                return null;
+            }
+
+            return program;
         }
     </script>
   </head>
