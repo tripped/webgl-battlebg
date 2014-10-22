@@ -32,9 +32,19 @@
             init = function() {
                 gl.clearColor(0, 0, 0.7, 1);
                 program = initProgram(gl);
+                gl.useProgram(program)
+
+                initVerts(gl);
+
+                texture = loadTexture(gl, 'texture');
+
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+
+                textureLoc = gl.getUniformLocation(program, "tex");
+                gl.uniform1i(textureLoc, 0);
 
                 gl.clear(gl.COLOR_BUFFER_BIT);
-                gl.useProgram(program)
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
             }
 
             c.addEventListener('webglcontextlost', function(e) {
@@ -70,7 +80,40 @@
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
                 gl.UNSIGNED_BYTE, image);
 
-            return tx;
+            return tex;
+        }
+
+        initVerts = function(gl) {
+            vbo = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+
+            var vertices = new Float32Array([
+                0.25,   0.75,  0.0,
+                -0.75,  0.75,  0.0,
+                -0.75, -0.25,  0.0,
+                0.25,   0.75,  0.0,
+                -0.75, -0.25,  0.0,
+                0.25,  -0.25,  0.0]);
+            var texCoords = new Float32Array([
+                1.0, 1.0,
+                0.0, 1.0,
+                0.0, 0.0,
+                1.0, 1.0,
+                0.0, 0.0,
+                1.0, 0.0]);
+
+            texCoordOffset = vertices.byteLength;
+            gl.bufferData(gl.ARRAY_BUFFER,
+                texCoordOffset + texCoords.byteLength,
+                gl.STATIC_DRAW);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices);
+            gl.bufferSubData(gl.ARRAY_BUFFER, texCoordOffset, texCoords);
+
+            gl.enableVertexAttribArray(0);
+            gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, 0);
+
+            gl.enableVertexAttribArray(1);
+            gl.vertexAttribPointer(1, 2, gl.FLOAT, gl.FALSE, 0, texCoordOffset);
         }
 
         initProgram = function(gl) {
@@ -101,6 +144,6 @@
   </head>
   <body onload="main()">
     <canvas id="canvas" width="512" height="512"></canvas>
-    <img src="background.png"/>
+    <img id="texture" src="background.png"/>
   </body>
 </html>
