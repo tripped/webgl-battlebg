@@ -141,8 +141,10 @@
             return program;
         }
     </script>
+
+    <script type="text/javascript" src="test.purs.js"></script>
   </head>
-  <body onload="main()">
+  <body onload="main()" onclick="PS.Main.main()">
     <canvas id="canvas" width="512" height="512"></canvas>
     <img id="texture" src="background.png"/>
   </body>
