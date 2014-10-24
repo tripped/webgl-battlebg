@@ -25,6 +25,15 @@ foreign import canvasContext
     \    document.getElementById(id)); \
     \}" :: String -> GLContext
 
+foreign import stringifyContext
+    "function stringifyContext(c) { \
+    \  return '' + c; \
+    \}" :: GLContext -> String
+
+instance showContext :: Prelude.Show GLContext where
+    show c = stringifyContext c
+
 main = do
     r <- random
     alert $ "Here is your number: " ++ show r
+    alert $ show $ canvasContext "canvas"
